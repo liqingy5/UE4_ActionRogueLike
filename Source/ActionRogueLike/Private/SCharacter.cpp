@@ -28,6 +28,7 @@ ASCharacter::ASCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
+
 }
 
 // Called when the game starts or when spawned
@@ -62,15 +63,11 @@ void ASCharacter::MoveRight(float value)
 
 void ASCharacter::PrimaryAttack()
 {
-	FVector HandLocation= GetMesh()->GetSocketLocation("Muzzle_01");
+	const float PrimaryAttackElapsed = 0.17f;
 
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	PlayAnimMontage(AttackAnim);
 
-
-
-	GetWorld()->SpawnActor<AActor>(ProjectileClass,SpawnTM,SpawnParams);
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, PrimaryAttackElapsed);
 }
 
 
@@ -102,6 +99,20 @@ void ASCharacter::PrimaryInteract()
 	{
 		InteractionComp->PrimaryInteract();
 	}
+}
+
+void ASCharacter::PrimaryAttack_TimeElapsed()
+{
+	// GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack); // If Character die, cancel attack behavior
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+
+	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+
+	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
 }
 
 // Called to bind functionality to input
